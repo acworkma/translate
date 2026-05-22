@@ -1,0 +1,20 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage__accountName": "stfn<workload><env><suffix>",
+    "AzureWebJobsStorage__credential": "managedidentity",
+    "AzureWebJobsStorage__clientId": "<managed-identity-client-id>",
+    "FUNCTIONS_WORKER_RUNTIME": "python",
+    "AZURE_CLIENT_ID": "<managed-identity-client-id>",
+    "FOUNDRY_ENDPOINT": "https://aif-<workload>-<env>.cognitiveservices.azure.com/",
+    "COSMOS_ENDPOINT": "https://cosmos-<workload>-<env>-<suffix>.documents.azure.com:443/",
+    "COSMOS_DATABASE": "dischargemt",
+    "DOCUMENT_STORAGE_BLOB_ENDPOINT": "https://st<workload><env><suffix>.blob.core.windows.net/",
+    "MODEL_TRANSLATOR": "gpt-4-1",
+    "MODEL_JUDGE": "grok-3",
+    "MODEL_UTILITY": "gpt-4o-mini",
+    "CONTENT_UNDERSTANDING_ANALYZER_ID": "discharge-doc-v1",
+    "JUDGE_PASS_THRESHOLD": "4.0",
+    "MAX_REVISE_ATTEMPTS": "2"
+  }
+}

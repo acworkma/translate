@@ -1,0 +1,30 @@
+{
+  "version": "2.0",
+  "logging": {
+    "applicationInsights": {
+      "samplingSettings": {
+        "isEnabled": true,
+        "excludedTypes": "Request"
+      }
+    },
+    "logLevel": {
+      "default": "Information",
+      "Host.Aggregator": "Trace",
+      "Function": "Information"
+    }
+  },
+  "extensions": {
+    "durableTask": {
+      "hubName": "DischargeMT",
+      "storageProvider": {
+        "type": "AzureStorage"
+      },
+      "maxConcurrentActivityFunctions": 10,
+      "maxConcurrentOrchestratorFunctions": 5
+    },
+    "http": {
+      "routePrefix": "api"
+    }
+  },
+  "functionTimeout": "00:30:00"
+}
