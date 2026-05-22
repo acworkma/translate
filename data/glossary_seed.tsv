@@ -1,0 +1,46 @@
+source	language	target	notes
+Tylenol	es	Tylenol	brand name — keep verbatim
+Tylenol	zh-Hans	Tylenol	brand name — keep verbatim
+Tylenol	vi	Tylenol	brand name — keep verbatim
+Tylenol	ar	Tylenol	brand name — keep verbatim
+Tylenol	ru	Tylenol	brand name — keep verbatim
+Amoxicillin	es	amoxicilina	generic
+Amoxicillin	zh-Hans	阿莫西林	generic
+Amoxicillin	vi	amoxicillin	generic — keep latin
+Amoxicillin	ar	أموكسيسيلين	generic
+Amoxicillin	ru	амоксициллин	generic
+Albuterol	es	albuterol	generic — keep latin
+Albuterol	zh-Hans	沙丁胺醇	generic
+Albuterol	vi	albuterol	generic
+Albuterol	ar	ألبوتيرول	generic
+Albuterol	ru	альбутерол	generic
+Ibuprofen	es	ibuprofeno	generic
+Ibuprofen	zh-Hans	布洛芬	generic
+Ibuprofen	vi	ibuprofen	generic
+Ibuprofen	ar	إيبوبروفين	generic
+Ibuprofen	ru	ибупрофен	generic
+acute otitis media	es	otitis media aguda	clinical
+acute otitis media	zh-Hans	急性中耳炎	clinical
+acute otitis media	vi	viêm tai giữa cấp tính	clinical
+acute otitis media	ar	التهاب الأذن الوسطى الحاد	clinical
+acute otitis media	ru	острый средний отит	clinical
+asthma	es	asma	clinical
+asthma	zh-Hans	哮喘	clinical
+asthma	vi	hen suyễn	clinical
+asthma	ar	الربو	clinical
+asthma	ru	астма	clinical
+fever	es	fiebre	common
+fever	zh-Hans	发烧	common
+fever	vi	sốt	common
+fever	ar	الحمى	common
+fever	ru	лихорадка	common
+spacer	es	espaciador	device
+spacer	zh-Hans	储雾罐	device
+spacer	vi	buồng đệm	device
+spacer	ar	جهاز فاصل	device
+spacer	ru	спейсер	device
+discharge summary	es	resumen de alta	doc type
+discharge summary	zh-Hans	出院小结	doc type
+discharge summary	vi	tóm tắt xuất viện	doc type
+discharge summary	ar	ملخص الخروج	doc type
+discharge summary	ru	выписной эпикриз	doc type

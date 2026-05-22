@@ -1,0 +1,1712 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.43.8.12551",
+      "templateHash": "14329265481570771876"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "eastus2",
+      "metadata": {
+        "description": "Azure region. eastus2 has Content Understanding + AOAI + Language + xAI Grok."
+      }
+    },
+    "adminPrincipalId": {
+      "type": "string",
+      "metadata": {
+        "description": "Entra ID object ID of the user or group granted Key Vault Admin, AI Developer, Cosmos data."
+      }
+    },
+    "extraTags": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Optional tags merged onto the standard set."
+      }
+    }
+  },
+  "variables": {
+    "baseTags": {
+      "workload": "translate",
+      "dataClassification": "PHI",
+      "managedBy": "bicep"
+    },
+    "tags": "[union(variables('baseTags'), parameters('extraTags'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/resourceGroups",
+      "apiVersion": "2024-03-01",
+      "name": "rg-translate",
+      "location": "[parameters('location')]",
+      "tags": "[variables('tags')]"
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "translate-workload",
+      "resourceGroup": "rg-translate",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "tags": {
+            "value": "[variables('tags')]"
+          },
+          "adminPrincipalId": {
+            "value": "[parameters('adminPrincipalId')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.43.8.12551",
+              "templateHash": "17163766825314704524"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string"
+            },
+            "tags": {
+              "type": "object"
+            },
+            "adminPrincipalId": {
+              "type": "string"
+            },
+            "cuLocation": {
+              "type": "string",
+              "defaultValue": "westus",
+              "metadata": {
+                "description": "Region for the Content Understanding account (CU preview not yet in eastus2). Default westus."
+              }
+            }
+          },
+          "variables": {
+            "suffix": "[take(uniqueString(resourceGroup().id), 6)]",
+            "names": {
+              "managedIdentity": "id-translate-eus2",
+              "logAnalytics": "log-translate-eus2",
+              "appInsights": "appi-translate-eus2",
+              "storage": "[take(toLower(replace(format('sttranslate{0}', variables('suffix')), '-', '')), 24)]",
+              "funcStorage": "[take(toLower(replace(format('stfunctranslate{0}', variables('suffix')), '-', '')), 24)]",
+              "keyVault": "[take(format('kv-translate-{0}', variables('suffix')), 24)]",
+              "foundryAccount": "aif-translate-eus2",
+              "foundryProject": "proj-translate-eus2",
+              "cosmos": "[take(format('cosmos-translate-{0}', variables('suffix')), 44)]",
+              "funcPlan": "asp-translate-eus2",
+              "funcApp": "[format('func-translate-{0}', variables('suffix'))]",
+              "contentUnderstanding": "cog-translate-cu-wus"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2025-04-01",
+              "name": "mod-identity",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "name": {
+                    "value": "[variables('names').managedIdentity]"
+                  },
+                  "location": {
+                    "value": "[parameters('location')]"
+                  },
+                  "tags": {
+                    "value": "[parameters('tags')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.43.8.12551",
+                      "templateHash": "12608180161146235164"
+                    }
+                  },
+                  "parameters": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "location": {
+                      "type": "string"
+                    },
+                    "tags": {
+                      "type": "object"
+                    }
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+                      "apiVersion": "2023-01-31",
+                      "name": "[parameters('name')]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]"
+                    }
+                  ],
+                  "outputs": {
+                    "id": {
+                      "type": "string",
+                      "value": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('name'))]"
+                    },
+                    "principalId": {
+                      "type": "string",
+                      "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('name')), '2023-01-31').principalId]"
+                    },
+                    "clientId": {
+                      "type": "string",
+                      "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('name')), '2023-01-31').clientId]"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2025-04-01",
+              "name": "mod-monitoring",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "logAnalyticsName": {
+                    "value": "[variables('names').logAnalytics]"
+                  },
+                  "appInsightsName": {
+                    "value": "[variables('names').appInsights]"
+                  },
+                  "location": {
+                    "value": "[parameters('location')]"
+                  },
+                  "tags": {
+                    "value": "[parameters('tags')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.43.8.12551",
+                      "templateHash": "14467778972437570747"
+                    }
+                  },
+                  "parameters": {
+                    "logAnalyticsName": {
+                      "type": "string"
+                    },
+                    "appInsightsName": {
+                      "type": "string"
+                    },
+                    "location": {
+                      "type": "string"
+                    },
+                    "tags": {
+                      "type": "object"
+                    }
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.OperationalInsights/workspaces",
+                      "apiVersion": "2023-09-01",
+                      "name": "[parameters('logAnalyticsName')]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "properties": {
+                        "sku": {
+                          "name": "PerGB2018"
+                        },
+                        "retentionInDays": 90,
+                        "features": {
+                          "enableLogAccessUsingOnlyResourcePermissions": true
+                        }
+                      }
+                    },
+                    {
+                      "type": "Microsoft.Insights/components",
+                      "apiVersion": "2020-02-02",
+                      "name": "[parameters('appInsightsName')]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "kind": "web",
+                      "properties": {
+                        "Application_Type": "web",
+                        "WorkspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('logAnalyticsName'))]",
+                        "DisableLocalAuth": true,
+                        "publicNetworkAccessForIngestion": "Enabled",
+                        "publicNetworkAccessForQuery": "Enabled"
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('logAnalyticsName'))]"
+                      ]
+                    }
+                  ],
+                  "outputs": {
+                    "logAnalyticsId": {
+                      "type": "string",
+                      "value": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('logAnalyticsName'))]"
+                    },
+                    "appInsightsId": {
+                      "type": "string",
+                      "value": "[resourceId('Microsoft.Insights/components', parameters('appInsightsName'))]"
+                    },
+                    "appInsightsConnectionString": {
+                      "type": "string",
+                      "value": "[reference(resourceId('Microsoft.Insights/components', parameters('appInsightsName')), '2020-02-02').ConnectionString]"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2025-04-01",
+              "name": "mod-keyvault",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "name": {
+                    "value": "[variables('names').keyVault]"
+                  },
+                  "location": {
+                    "value": "[parameters('location')]"
+                  },
+                  "tags": {
+                    "value": "[parameters('tags')]"
+                  },
+                  "miPrincipalId": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'mod-identity'), '2025-04-01').outputs.principalId.value]"
+                  },
+                  "adminPrincipalId": {
+                    "value": "[parameters('adminPrincipalId')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.43.8.12551",
+                      "templateHash": "4910312292779497084"
+                    }
+                  },
+                  "parameters": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "location": {
+                      "type": "string"
+                    },
+                    "tags": {
+                      "type": "object"
+                    },
+                    "miPrincipalId": {
+                      "type": "string"
+                    },
+                    "adminPrincipalId": {
+                      "type": "string"
+                    }
+                  },
+                  "variables": {
+                    "roleKvSecretsUser": "4633458b-17de-408a-b874-0445c86b69e6",
+                    "roleKvAdministrator": "00482a5a-887f-4fb3-b363-3b7fe8e74483"
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.KeyVault/vaults",
+                      "apiVersion": "2024-04-01-preview",
+                      "name": "[parameters('name')]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "properties": {
+                        "tenantId": "[subscription().tenantId]",
+                        "sku": {
+                          "name": "standard",
+                          "family": "A"
+                        },
+                        "enableRbacAuthorization": true,
+                        "enableSoftDelete": true,
+                        "softDeleteRetentionInDays": 90,
+                        "enablePurgeProtection": true,
+                        "publicNetworkAccess": "Enabled",
+                        "networkAcls": {
+                          "defaultAction": "Allow",
+                          "bypass": "AzureServices"
+                        }
+                      }
+                    },
+                    {
+                      "type": "Microsoft.Authorization/roleAssignments",
+                      "apiVersion": "2022-04-01",
+                      "scope": "[resourceId('Microsoft.KeyVault/vaults', parameters('name'))]",
+                      "name": "[guid(resourceId('Microsoft.KeyVault/vaults', parameters('name')), parameters('miPrincipalId'), variables('roleKvSecretsUser'))]",
+                      "properties": {
+                        "principalId": "[parameters('miPrincipalId')]",
+                        "principalType": "ServicePrincipal",
+                        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('roleKvSecretsUser'))]"
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.KeyVault/vaults', parameters('name'))]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.Authorization/roleAssignments",
+                      "apiVersion": "2022-04-01",
+                      "scope": "[resourceId('Microsoft.KeyVault/vaults', parameters('name'))]",
+                      "name": "[guid(resourceId('Microsoft.KeyVault/vaults', parameters('name')), parameters('adminPrincipalId'), variables('roleKvAdministrator'))]",
+                      "properties": {
+                        "principalId": "[parameters('adminPrincipalId')]",
+                        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('roleKvAdministrator'))]"
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.KeyVault/vaults', parameters('name'))]"
+                      ]
+                    }
+                  ],
+                  "outputs": {
+                    "name": {
+                      "type": "string",
+                      "value": "[parameters('name')]"
+                    },
+                    "id": {
+                      "type": "string",
+                      "value": "[resourceId('Microsoft.KeyVault/vaults', parameters('name'))]"
+                    },
+                    "uri": {
+                      "type": "string",
+                      "value": "[reference(resourceId('Microsoft.KeyVault/vaults', parameters('name')), '2024-04-01-preview').vaultUri]"
+                    }
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'mod-identity')]"
+              ]
+            },
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2025-04-01",
+              "name": "mod-foundry",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "accountName": {
+                    "value": "[variables('names').foundryAccount]"
+                  },
+                  "projectName": {
+                    "value": "[variables('names').foundryProject]"
+                  },
+                  "location": {
+                    "value": "[parameters('location')]"
+                  },
+                  "tags": {
+                    "value": "[parameters('tags')]"
+                  },
+                  "miPrincipalId": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'mod-identity'), '2025-04-01').outputs.principalId.value]"
+                  },
+                  "adminPrincipalId": {
+                    "value": "[parameters('adminPrincipalId')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.43.8.12551",
+                      "templateHash": "2549233123669293343"
+                    }
+                  },
+                  "parameters": {
+                    "accountName": {
+                      "type": "string"
+                    },
+                    "projectName": {
+                      "type": "string"
+                    },
+                    "location": {
+                      "type": "string"
+                    },
+                    "tags": {
+                      "type": "object"
+                    },
+                    "miPrincipalId": {
+                      "type": "string"
+                    },
+                    "adminPrincipalId": {
+                      "type": "string"
+                    },
+                    "modelDeployments": {
+                      "type": "array",
+                      "defaultValue": [
+                        {
+                          "name": "gpt-4-1",
+                          "format": "OpenAI",
+                          "model": "gpt-4.1",
+                          "version": "2025-04-14",
+                          "sku": "GlobalStandard",
+                          "capacity": 50
+                        },
+                        {
+                          "name": "gpt-4o-mini",
+                          "format": "OpenAI",
+                          "model": "gpt-4o-mini",
+                          "version": "2024-07-18",
+                          "sku": "GlobalStandard",
+                          "capacity": 100
+                        },
+                        {
+                          "name": "grok-4-1-fast-reasoning",
+                          "format": "xAI",
+                          "model": "grok-4-1-fast-reasoning",
+                          "version": "1",
+                          "sku": "GlobalStandard",
+                          "capacity": 20
+                        }
+                      ],
+                      "metadata": {
+                        "description": "Model deployments. format=OpenAI for AOAI, format=xAI for Grok."
+                      }
+                    }
+                  },
+                  "variables": {
+                    "roleCognitiveServicesUser": "a97b65f3-24c7-4388-baec-2e87135dc908",
+                    "roleCognitiveServicesOpenAIUser": "5e0bd9bd-7b93-4f28-af87-19fc36ad61bd",
+                    "roleAzureAIDeveloper": "64702f94-c441-49e6-a78b-ef80e0188fee"
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.CognitiveServices/accounts",
+                      "apiVersion": "2025-04-01-preview",
+                      "name": "[parameters('accountName')]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "kind": "AIServices",
+                      "sku": {
+                        "name": "S0"
+                      },
+                      "identity": {
+                        "type": "SystemAssigned"
+                      },
+                      "properties": {
+                        "customSubDomainName": "[parameters('accountName')]",
+                        "publicNetworkAccess": "Enabled",
+                        "disableLocalAuth": false,
+                        "allowProjectManagement": true,
+                        "networkAcls": {
+                          "defaultAction": "Allow",
+                          "virtualNetworkRules": [],
+                          "ipRules": []
+                        }
+                      }
+                    },
+                    {
+                      "type": "Microsoft.CognitiveServices/accounts/projects",
+                      "apiVersion": "2025-04-01-preview",
+                      "name": "[format('{0}/{1}', parameters('accountName'), parameters('projectName'))]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "identity": {
+                        "type": "SystemAssigned"
+                      },
+                      "properties": {
+                        "displayName": "[parameters('projectName')]",
+                        "description": "Document Translation workload (hybrid Document Translation + LLM judge)."
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.CognitiveServices/accounts', parameters('accountName'))]"
+                      ]
+                    },
+                    {
+                      "copy": {
+                        "name": "deployment",
+                        "count": "[length(parameters('modelDeployments'))]",
+                        "mode": "serial",
+                        "batchSize": 1
+                      },
+                      "type": "Microsoft.CognitiveServices/accounts/deployments",
+                      "apiVersion": "2025-04-01-preview",
+                      "name": "[format('{0}/{1}', parameters('accountName'), parameters('modelDeployments')[copyIndex()].name)]",
+                      "sku": {
+                        "name": "[parameters('modelDeployments')[copyIndex()].sku]",
+                        "capacity": "[parameters('modelDeployments')[copyIndex()].capacity]"
+                      },
+                      "properties": {
+                        "model": {
+                          "format": "[parameters('modelDeployments')[copyIndex()].format]",
+                          "name": "[parameters('modelDeployments')[copyIndex()].model]",
+                          "version": "[parameters('modelDeployments')[copyIndex()].version]"
+                        },
+                        "raiPolicyName": "Microsoft.DefaultV2",
+                        "versionUpgradeOption": "OnceNewDefaultVersionAvailable"
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.CognitiveServices/accounts', parameters('accountName'))]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.Authorization/roleAssignments",
+                      "apiVersion": "2022-04-01",
+                      "scope": "[resourceId('Microsoft.CognitiveServices/accounts', parameters('accountName'))]",
+                      "name": "[guid(resourceId('Microsoft.CognitiveServices/accounts', parameters('accountName')), parameters('miPrincipalId'), variables('roleCognitiveServicesUser'))]",
+                      "properties": {
+                        "principalId": "[parameters('miPrincipalId')]",
+                        "principalType": "ServicePrincipal",
+                        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('roleCognitiveServicesUser'))]"
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.CognitiveServices/accounts', parameters('accountName'))]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.Authorization/roleAssignments",
+                      "apiVersion": "2022-04-01",
+                      "scope": "[resourceId('Microsoft.CognitiveServices/accounts', parameters('accountName'))]",
+                      "name": "[guid(resourceId('Microsoft.CognitiveServices/accounts', parameters('accountName')), parameters('miPrincipalId'), variables('roleCognitiveServicesOpenAIUser'))]",
+                      "properties": {
+                        "principalId": "[parameters('miPrincipalId')]",
+                        "principalType": "ServicePrincipal",
+                        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('roleCognitiveServicesOpenAIUser'))]"
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.CognitiveServices/accounts', parameters('accountName'))]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.Authorization/roleAssignments",
+                      "apiVersion": "2022-04-01",
+                      "scope": "[resourceId('Microsoft.CognitiveServices/accounts', parameters('accountName'))]",
+                      "name": "[guid(resourceId('Microsoft.CognitiveServices/accounts', parameters('accountName')), parameters('adminPrincipalId'), variables('roleAzureAIDeveloper'))]",
+                      "properties": {
+                        "principalId": "[parameters('adminPrincipalId')]",
+                        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('roleAzureAIDeveloper'))]"
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.CognitiveServices/accounts', parameters('accountName'))]"
+                      ]
+                    }
+                  ],
+                  "outputs": {
+                    "endpoint": {
+                      "type": "string",
+                      "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', parameters('accountName')), '2025-04-01-preview').endpoint]"
+                    },
+                    "accountId": {
+                      "type": "string",
+                      "value": "[resourceId('Microsoft.CognitiveServices/accounts', parameters('accountName'))]"
+                    },
+                    "accountName": {
+                      "type": "string",
+                      "value": "[parameters('accountName')]"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "value": "[resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('accountName'), parameters('projectName'))]"
+                    },
+                    "projectName": {
+                      "type": "string",
+                      "value": "[parameters('projectName')]"
+                    },
+                    "systemPrincipalId": {
+                      "type": "string",
+                      "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', parameters('accountName')), '2025-04-01-preview', 'full').identity.principalId]"
+                    }
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'mod-identity')]"
+              ]
+            },
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2025-04-01",
+              "name": "mod-storage",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "name": {
+                    "value": "[variables('names').storage]"
+                  },
+                  "location": {
+                    "value": "[parameters('location')]"
+                  },
+                  "tags": {
+                    "value": "[parameters('tags')]"
+                  },
+                  "miPrincipalId": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'mod-identity'), '2025-04-01').outputs.principalId.value]"
+                  },
+                  "foundryPrincipalId": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'mod-foundry'), '2025-04-01').outputs.systemPrincipalId.value]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.43.8.12551",
+                      "templateHash": "15778096187345839742"
+                    }
+                  },
+                  "parameters": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "location": {
+                      "type": "string"
+                    },
+                    "tags": {
+                      "type": "object"
+                    },
+                    "miPrincipalId": {
+                      "type": "string"
+                    },
+                    "foundryPrincipalId": {
+                      "type": "string"
+                    }
+                  },
+                  "variables": {
+                    "containers": [
+                      "inbound",
+                      "extracted",
+                      "glossaries",
+                      "translated",
+                      "reviewed",
+                      "final",
+                      "audit"
+                    ],
+                    "roleStorageBlobDataContributor": "ba92f5b4-2d11-453d-a403-e96b0029c9fe"
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.Storage/storageAccounts",
+                      "apiVersion": "2024-01-01",
+                      "name": "[parameters('name')]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "sku": {
+                        "name": "Standard_GZRS"
+                      },
+                      "kind": "StorageV2",
+                      "identity": {
+                        "type": "SystemAssigned"
+                      },
+                      "properties": {
+                        "isHnsEnabled": true,
+                        "minimumTlsVersion": "TLS1_2",
+                        "allowBlobPublicAccess": false,
+                        "allowSharedKeyAccess": false,
+                        "supportsHttpsTrafficOnly": true,
+                        "publicNetworkAccess": "Enabled",
+                        "encryption": {
+                          "services": {
+                            "blob": {
+                              "enabled": true,
+                              "keyType": "Account"
+                            },
+                            "file": {
+                              "enabled": true,
+                              "keyType": "Account"
+                            }
+                          },
+                          "keySource": "Microsoft.Storage",
+                          "requireInfrastructureEncryption": true
+                        },
+                        "networkAcls": {
+                          "defaultAction": "Allow",
+                          "bypass": "AzureServices"
+                        }
+                      }
+                    },
+                    {
+                      "type": "Microsoft.Storage/storageAccounts/blobServices",
+                      "apiVersion": "2024-01-01",
+                      "name": "[format('{0}/{1}', parameters('name'), 'default')]",
+                      "properties": {
+                        "deleteRetentionPolicy": {
+                          "enabled": true,
+                          "days": 30
+                        },
+                        "containerDeleteRetentionPolicy": {
+                          "enabled": true,
+                          "days": 30
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', parameters('name'))]"
+                      ]
+                    },
+                    {
+                      "copy": {
+                        "name": "container",
+                        "count": "[length(variables('containers'))]",
+                        "mode": "serial",
+                        "batchSize": 1
+                      },
+                      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+                      "apiVersion": "2024-01-01",
+                      "name": "[format('{0}/{1}/{2}', parameters('name'), 'default', variables('containers')[copyIndex()])]",
+                      "properties": {
+                        "publicAccess": "None"
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('name'), 'default')]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.Authorization/roleAssignments",
+                      "apiVersion": "2022-04-01",
+                      "scope": "[resourceId('Microsoft.Storage/storageAccounts', parameters('name'))]",
+                      "name": "[guid(resourceId('Microsoft.Storage/storageAccounts', parameters('name')), parameters('miPrincipalId'), variables('roleStorageBlobDataContributor'))]",
+                      "properties": {
+                        "principalId": "[parameters('miPrincipalId')]",
+                        "principalType": "ServicePrincipal",
+                        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('roleStorageBlobDataContributor'))]"
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', parameters('name'))]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.Authorization/roleAssignments",
+                      "apiVersion": "2022-04-01",
+                      "scope": "[resourceId('Microsoft.Storage/storageAccounts', parameters('name'))]",
+                      "name": "[guid(resourceId('Microsoft.Storage/storageAccounts', parameters('name')), parameters('foundryPrincipalId'), variables('roleStorageBlobDataContributor'))]",
+                      "properties": {
+                        "principalId": "[parameters('foundryPrincipalId')]",
+                        "principalType": "ServicePrincipal",
+                        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('roleStorageBlobDataContributor'))]"
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', parameters('name'))]"
+                      ]
+                    }
+                  ],
+                  "outputs": {
+                    "name": {
+                      "type": "string",
+                      "value": "[parameters('name')]"
+                    },
+                    "id": {
+                      "type": "string",
+                      "value": "[resourceId('Microsoft.Storage/storageAccounts', parameters('name'))]"
+                    },
+                    "blobEndpoint": {
+                      "type": "string",
+                      "value": "[reference(resourceId('Microsoft.Storage/storageAccounts', parameters('name')), '2024-01-01').primaryEndpoints.blob]"
+                    }
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'mod-foundry')]",
+                "[resourceId('Microsoft.Resources/deployments', 'mod-identity')]"
+              ]
+            },
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2025-04-01",
+              "name": "mod-cosmos",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "name": {
+                    "value": "[variables('names').cosmos]"
+                  },
+                  "location": {
+                    "value": "[parameters('location')]"
+                  },
+                  "tags": {
+                    "value": "[parameters('tags')]"
+                  },
+                  "miPrincipalId": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'mod-identity'), '2025-04-01').outputs.principalId.value]"
+                  },
+                  "adminPrincipalId": {
+                    "value": "[parameters('adminPrincipalId')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.43.8.12551",
+                      "templateHash": "8985974287287701070"
+                    }
+                  },
+                  "parameters": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "location": {
+                      "type": "string"
+                    },
+                    "tags": {
+                      "type": "object"
+                    },
+                    "miPrincipalId": {
+                      "type": "string"
+                    },
+                    "adminPrincipalId": {
+                      "type": "string"
+                    }
+                  },
+                  "variables": {
+                    "containers": [
+                      {
+                        "name": "jobs",
+                        "partitionKey": "/jobId",
+                        "ttl": -1
+                      },
+                      {
+                        "name": "glossary",
+                        "partitionKey": "/language",
+                        "ttl": -1
+                      },
+                      {
+                        "name": "audit",
+                        "partitionKey": "/jobId",
+                        "ttl": 7776000
+                      },
+                      {
+                        "name": "reviews",
+                        "partitionKey": "/jobId",
+                        "ttl": -1
+                      }
+                    ],
+                    "cosmosBuiltInDataContributorId": "00000000-0000-0000-0000-000000000002"
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.DocumentDB/databaseAccounts",
+                      "apiVersion": "2024-11-15",
+                      "name": "[parameters('name')]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "kind": "GlobalDocumentDB",
+                      "identity": {
+                        "type": "SystemAssigned"
+                      },
+                      "properties": {
+                        "databaseAccountOfferType": "Standard",
+                        "locations": [
+                          {
+                            "locationName": "[parameters('location')]",
+                            "failoverPriority": 0,
+                            "isZoneRedundant": false
+                          }
+                        ],
+                        "consistencyPolicy": {
+                          "defaultConsistencyLevel": "Session"
+                        },
+                        "capabilities": [
+                          {
+                            "name": "EnableServerless"
+                          }
+                        ],
+                        "publicNetworkAccess": "Enabled",
+                        "disableLocalAuth": true,
+                        "minimalTlsVersion": "Tls12",
+                        "enableAutomaticFailover": false,
+                        "networkAclBypass": "AzureServices"
+                      }
+                    },
+                    {
+                      "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases",
+                      "apiVersion": "2024-11-15",
+                      "name": "[format('{0}/{1}', parameters('name'), 'translate')]",
+                      "properties": {
+                        "resource": {
+                          "id": "translate"
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('name'))]"
+                      ]
+                    },
+                    {
+                      "copy": {
+                        "name": "container",
+                        "count": "[length(variables('containers'))]",
+                        "mode": "serial",
+                        "batchSize": 1
+                      },
+                      "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers",
+                      "apiVersion": "2024-11-15",
+                      "name": "[format('{0}/{1}/{2}', parameters('name'), 'translate', variables('containers')[copyIndex()].name)]",
+                      "properties": {
+                        "resource": {
+                          "id": "[variables('containers')[copyIndex()].name]",
+                          "partitionKey": {
+                            "paths": [
+                              "[variables('containers')[copyIndex()].partitionKey]"
+                            ],
+                            "kind": "Hash"
+                          },
+                          "defaultTtl": "[variables('containers')[copyIndex()].ttl]",
+                          "indexingPolicy": {
+                            "indexingMode": "consistent",
+                            "automatic": true,
+                            "includedPaths": [
+                              {
+                                "path": "/*"
+                              }
+                            ],
+                            "excludedPaths": [
+                              {
+                                "path": "/\"_etag\"/?"
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.DocumentDB/databaseAccounts/sqlDatabases', parameters('name'), 'translate')]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments",
+                      "apiVersion": "2024-11-15",
+                      "name": "[format('{0}/{1}', parameters('name'), guid(resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('name')), parameters('miPrincipalId'), 'data-contributor'))]",
+                      "properties": {
+                        "roleDefinitionId": "[format('{0}/sqlRoleDefinitions/{1}', resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('name')), variables('cosmosBuiltInDataContributorId'))]",
+                        "principalId": "[parameters('miPrincipalId')]",
+                        "scope": "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('name'))]"
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('name'))]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments",
+                      "apiVersion": "2024-11-15",
+                      "name": "[format('{0}/{1}', parameters('name'), guid(resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('name')), parameters('adminPrincipalId'), 'data-contributor'))]",
+                      "properties": {
+                        "roleDefinitionId": "[format('{0}/sqlRoleDefinitions/{1}', resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('name')), variables('cosmosBuiltInDataContributorId'))]",
+                        "principalId": "[parameters('adminPrincipalId')]",
+                        "scope": "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('name'))]"
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('name'))]"
+                      ]
+                    }
+                  ],
+                  "outputs": {
+                    "endpoint": {
+                      "type": "string",
+                      "value": "[reference(resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('name')), '2024-11-15').documentEndpoint]"
+                    },
+                    "name": {
+                      "type": "string",
+                      "value": "[parameters('name')]"
+                    },
+                    "id": {
+                      "type": "string",
+                      "value": "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('name'))]"
+                    },
+                    "databaseName": {
+                      "type": "string",
+                      "value": "translate"
+                    }
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'mod-identity')]"
+              ]
+            },
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2025-04-01",
+              "name": "mod-cu",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "name": {
+                    "value": "[variables('names').contentUnderstanding]"
+                  },
+                  "location": {
+                    "value": "[parameters('cuLocation')]"
+                  },
+                  "tags": {
+                    "value": "[parameters('tags')]"
+                  },
+                  "uamiPrincipalId": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'mod-identity'), '2025-04-01').outputs.principalId.value]"
+                  },
+                  "adminPrincipalId": {
+                    "value": "[parameters('adminPrincipalId')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.43.8.12551",
+                      "templateHash": "448232735327329943"
+                    }
+                  },
+                  "parameters": {
+                    "location": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Region that supports Content Understanding preview (swedencentral, westus, or australiaeast)."
+                      }
+                    },
+                    "name": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "CAF-style account name, e.g. cog-translate-cu-swc."
+                      }
+                    },
+                    "uamiPrincipalId": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Workload UAMI principal id, granted Cognitive Services User on this account."
+                      }
+                    },
+                    "adminPrincipalId": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Admin principal id, granted Azure AI Developer on this account."
+                      }
+                    },
+                    "tags": {
+                      "type": "object",
+                      "defaultValue": {},
+                      "metadata": {
+                        "description": "Tags."
+                      }
+                    }
+                  },
+                  "variables": {
+                    "roleCognitiveServicesUser": "a97b65f3-24c7-4388-baec-2e87135dc908",
+                    "roleAzureAIDeveloper": "64702f94-c441-49e6-a78b-ef80e0188fee"
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.CognitiveServices/accounts",
+                      "apiVersion": "2025-04-01-preview",
+                      "name": "[parameters('name')]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "kind": "AIServices",
+                      "sku": {
+                        "name": "S0"
+                      },
+                      "identity": {
+                        "type": "SystemAssigned"
+                      },
+                      "properties": {
+                        "customSubDomainName": "[parameters('name')]",
+                        "publicNetworkAccess": "Enabled",
+                        "disableLocalAuth": false
+                      }
+                    },
+                    {
+                      "type": "Microsoft.Authorization/roleAssignments",
+                      "apiVersion": "2022-04-01",
+                      "scope": "[resourceId('Microsoft.CognitiveServices/accounts', parameters('name'))]",
+                      "name": "[guid(resourceId('Microsoft.CognitiveServices/accounts', parameters('name')), parameters('uamiPrincipalId'), variables('roleCognitiveServicesUser'))]",
+                      "properties": {
+                        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('roleCognitiveServicesUser'))]",
+                        "principalId": "[parameters('uamiPrincipalId')]",
+                        "principalType": "ServicePrincipal"
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.CognitiveServices/accounts', parameters('name'))]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.Authorization/roleAssignments",
+                      "apiVersion": "2022-04-01",
+                      "scope": "[resourceId('Microsoft.CognitiveServices/accounts', parameters('name'))]",
+                      "name": "[guid(resourceId('Microsoft.CognitiveServices/accounts', parameters('name')), parameters('adminPrincipalId'), variables('roleAzureAIDeveloper'))]",
+                      "properties": {
+                        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('roleAzureAIDeveloper'))]",
+                        "principalId": "[parameters('adminPrincipalId')]",
+                        "principalType": "User"
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.CognitiveServices/accounts', parameters('name'))]"
+                      ]
+                    }
+                  ],
+                  "outputs": {
+                    "endpoint": {
+                      "type": "string",
+                      "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', parameters('name')), '2025-04-01-preview').endpoint]"
+                    },
+                    "name": {
+                      "type": "string",
+                      "value": "[parameters('name')]"
+                    },
+                    "id": {
+                      "type": "string",
+                      "value": "[resourceId('Microsoft.CognitiveServices/accounts', parameters('name'))]"
+                    }
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'mod-identity')]"
+              ]
+            },
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2025-04-01",
+              "name": "mod-functions",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "functionAppName": {
+                    "value": "[variables('names').funcApp]"
+                  },
+                  "planName": {
+                    "value": "[variables('names').funcPlan]"
+                  },
+                  "funcStorageName": {
+                    "value": "[variables('names').funcStorage]"
+                  },
+                  "location": {
+                    "value": "[parameters('location')]"
+                  },
+                  "tags": {
+                    "value": "[parameters('tags')]"
+                  },
+                  "miId": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'mod-identity'), '2025-04-01').outputs.id.value]"
+                  },
+                  "miPrincipalId": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'mod-identity'), '2025-04-01').outputs.principalId.value]"
+                  },
+                  "miClientId": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'mod-identity'), '2025-04-01').outputs.clientId.value]"
+                  },
+                  "appInsightsConnectionString": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'mod-monitoring'), '2025-04-01').outputs.appInsightsConnectionString.value]"
+                  },
+                  "foundryEndpoint": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'mod-foundry'), '2025-04-01').outputs.endpoint.value]"
+                  },
+                  "cosmosEndpoint": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'mod-cosmos'), '2025-04-01').outputs.endpoint.value]"
+                  },
+                  "cosmosDatabaseName": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'mod-cosmos'), '2025-04-01').outputs.databaseName.value]"
+                  },
+                  "documentStorageAccountName": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'mod-storage'), '2025-04-01').outputs.name.value]"
+                  },
+                  "documentStorageBlobEndpoint": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'mod-storage'), '2025-04-01').outputs.blobEndpoint.value]"
+                  },
+                  "contentUnderstandingEndpoint": {
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', 'mod-cu'), '2025-04-01').outputs.endpoint.value]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.43.8.12551",
+                      "templateHash": "16939563448231206819"
+                    }
+                  },
+                  "parameters": {
+                    "functionAppName": {
+                      "type": "string"
+                    },
+                    "planName": {
+                      "type": "string"
+                    },
+                    "funcStorageName": {
+                      "type": "string"
+                    },
+                    "location": {
+                      "type": "string"
+                    },
+                    "tags": {
+                      "type": "object"
+                    },
+                    "miId": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Resource ID of the workload user-assigned managed identity."
+                      }
+                    },
+                    "miPrincipalId": {
+                      "type": "string"
+                    },
+                    "miClientId": {
+                      "type": "string"
+                    },
+                    "appInsightsConnectionString": {
+                      "type": "string"
+                    },
+                    "foundryEndpoint": {
+                      "type": "string"
+                    },
+                    "cosmosEndpoint": {
+                      "type": "string"
+                    },
+                    "cosmosDatabaseName": {
+                      "type": "string"
+                    },
+                    "documentStorageAccountName": {
+                      "type": "string"
+                    },
+                    "documentStorageBlobEndpoint": {
+                      "type": "string"
+                    },
+                    "contentUnderstandingEndpoint": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Endpoint of the dedicated Content Understanding Cognitive Services account."
+                      }
+                    }
+                  },
+                  "variables": {
+                    "roleStorageBlobDataOwner": "b7e6dc6d-f1e8-4753-8033-0f276bb0955b",
+                    "roleStorageQueueDataContributor": "974c5e8b-45b9-4653-ba55-5f855dd0fb88",
+                    "roleStorageTableDataContributor": "0a9a7e1f-b9d0-4cc4-a60d-0319b160aaa3"
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.Storage/storageAccounts",
+                      "apiVersion": "2024-01-01",
+                      "name": "[parameters('funcStorageName')]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "sku": {
+                        "name": "Standard_LRS"
+                      },
+                      "kind": "StorageV2",
+                      "properties": {
+                        "allowSharedKeyAccess": false,
+                        "allowBlobPublicAccess": false,
+                        "minimumTlsVersion": "TLS1_2",
+                        "supportsHttpsTrafficOnly": true,
+                        "publicNetworkAccess": "Enabled",
+                        "networkAcls": {
+                          "defaultAction": "Allow",
+                          "bypass": "AzureServices"
+                        }
+                      }
+                    },
+                    {
+                      "type": "Microsoft.Storage/storageAccounts/blobServices",
+                      "apiVersion": "2024-01-01",
+                      "name": "[format('{0}/{1}', parameters('funcStorageName'), 'default')]",
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', parameters('funcStorageName'))]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+                      "apiVersion": "2024-01-01",
+                      "name": "[format('{0}/{1}/{2}', parameters('funcStorageName'), 'default', 'deployment')]",
+                      "properties": {
+                        "publicAccess": "None"
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('funcStorageName'), 'default')]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.Authorization/roleAssignments",
+                      "apiVersion": "2022-04-01",
+                      "scope": "[resourceId('Microsoft.Storage/storageAccounts', parameters('funcStorageName'))]",
+                      "name": "[guid(resourceId('Microsoft.Storage/storageAccounts', parameters('funcStorageName')), parameters('miPrincipalId'), variables('roleStorageBlobDataOwner'))]",
+                      "properties": {
+                        "principalId": "[parameters('miPrincipalId')]",
+                        "principalType": "ServicePrincipal",
+                        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('roleStorageBlobDataOwner'))]"
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', parameters('funcStorageName'))]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.Authorization/roleAssignments",
+                      "apiVersion": "2022-04-01",
+                      "scope": "[resourceId('Microsoft.Storage/storageAccounts', parameters('funcStorageName'))]",
+                      "name": "[guid(resourceId('Microsoft.Storage/storageAccounts', parameters('funcStorageName')), parameters('miPrincipalId'), variables('roleStorageQueueDataContributor'))]",
+                      "properties": {
+                        "principalId": "[parameters('miPrincipalId')]",
+                        "principalType": "ServicePrincipal",
+                        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('roleStorageQueueDataContributor'))]"
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', parameters('funcStorageName'))]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.Authorization/roleAssignments",
+                      "apiVersion": "2022-04-01",
+                      "scope": "[resourceId('Microsoft.Storage/storageAccounts', parameters('funcStorageName'))]",
+                      "name": "[guid(resourceId('Microsoft.Storage/storageAccounts', parameters('funcStorageName')), parameters('miPrincipalId'), variables('roleStorageTableDataContributor'))]",
+                      "properties": {
+                        "principalId": "[parameters('miPrincipalId')]",
+                        "principalType": "ServicePrincipal",
+                        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('roleStorageTableDataContributor'))]"
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', parameters('funcStorageName'))]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.Web/serverfarms",
+                      "apiVersion": "2024-04-01",
+                      "name": "[parameters('planName')]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "sku": {
+                        "name": "FC1",
+                        "tier": "FlexConsumption"
+                      },
+                      "kind": "functionapp",
+                      "properties": {
+                        "reserved": true
+                      }
+                    },
+                    {
+                      "type": "Microsoft.Web/sites",
+                      "apiVersion": "2024-04-01",
+                      "name": "[parameters('functionAppName')]",
+                      "location": "[parameters('location')]",
+                      "tags": "[parameters('tags')]",
+                      "kind": "functionapp,linux",
+                      "identity": {
+                        "type": "UserAssigned",
+                        "userAssignedIdentities": {
+                          "[format('{0}', parameters('miId'))]": {}
+                        }
+                      },
+                      "properties": {
+                        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('planName'))]",
+                        "httpsOnly": true,
+                        "publicNetworkAccess": "Enabled",
+                        "keyVaultReferenceIdentity": "[parameters('miId')]",
+                        "functionAppConfig": {
+                          "deployment": {
+                            "storage": {
+                              "type": "blobContainer",
+                              "value": "[format('{0}deployment', reference(resourceId('Microsoft.Storage/storageAccounts', parameters('funcStorageName')), '2024-01-01').primaryEndpoints.blob)]",
+                              "authentication": {
+                                "type": "UserAssignedIdentity",
+                                "userAssignedIdentityResourceId": "[parameters('miId')]"
+                              }
+                            }
+                          },
+                          "scaleAndConcurrency": {
+                            "maximumInstanceCount": 100,
+                            "instanceMemoryMB": 2048
+                          },
+                          "runtime": {
+                            "name": "python",
+                            "version": "3.11"
+                          }
+                        },
+                        "siteConfig": {
+                          "minTlsVersion": "1.2",
+                          "ftpsState": "Disabled",
+                          "appSettings": [
+                            {
+                              "name": "AzureWebJobsStorage__accountName",
+                              "value": "[parameters('funcStorageName')]"
+                            },
+                            {
+                              "name": "AzureWebJobsStorage__credential",
+                              "value": "managedidentity"
+                            },
+                            {
+                              "name": "AzureWebJobsStorage__clientId",
+                              "value": "[parameters('miClientId')]"
+                            },
+                            {
+                              "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+                              "value": "[parameters('appInsightsConnectionString')]"
+                            },
+                            {
+                              "name": "AZURE_CLIENT_ID",
+                              "value": "[parameters('miClientId')]"
+                            },
+                            {
+                              "name": "FOUNDRY_ENDPOINT",
+                              "value": "[parameters('foundryEndpoint')]"
+                            },
+                            {
+                              "name": "TRANSLATOR_ENDPOINT",
+                              "value": "[parameters('foundryEndpoint')]"
+                            },
+                            {
+                              "name": "TRANSLATOR_API_VERSION",
+                              "value": "2024-05-01"
+                            },
+                            {
+                              "name": "COSMOS_ENDPOINT",
+                              "value": "[parameters('cosmosEndpoint')]"
+                            },
+                            {
+                              "name": "COSMOS_DATABASE",
+                              "value": "[parameters('cosmosDatabaseName')]"
+                            },
+                            {
+                              "name": "DOCUMENT_STORAGE_ACCOUNT_NAME",
+                              "value": "[parameters('documentStorageAccountName')]"
+                            },
+                            {
+                              "name": "DOCUMENT_STORAGE_BLOB_ENDPOINT",
+                              "value": "[parameters('documentStorageBlobEndpoint')]"
+                            },
+                            {
+                              "name": "DOCUMENT_TRANSLATION_TARGET_CONTAINER",
+                              "value": "translated"
+                            },
+                            {
+                              "name": "DOCUMENT_TRANSLATION_GLOSSARY_CONTAINER",
+                              "value": "glossaries"
+                            },
+                            {
+                              "name": "MODEL_TRANSLATOR",
+                              "value": "gpt-4-1"
+                            },
+                            {
+                              "name": "MODEL_JUDGE",
+                              "value": "grok-4-1-fast-reasoning"
+                            },
+                            {
+                              "name": "MODEL_UTILITY",
+                              "value": "gpt-4o-mini"
+                            },
+                            {
+                              "name": "CONTENT_UNDERSTANDING_ENDPOINT",
+                              "value": "[parameters('contentUnderstandingEndpoint')]"
+                            },
+                            {
+                              "name": "CONTENT_UNDERSTANDING_ANALYZER_ID",
+                              "value": "translate-doc-v1"
+                            },
+                            {
+                              "name": "SUPPORTED_LANGUAGES",
+                              "value": "es,zh-Hans,vi,ar,ru"
+                            },
+                            {
+                              "name": "JUDGE_PASS_THRESHOLD",
+                              "value": "4.0"
+                            },
+                            {
+                              "name": "MAX_REVISE_ATTEMPTS",
+                              "value": "2"
+                            }
+                          ]
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', parameters('funcStorageName'))]",
+                        "[extensionResourceId(resourceId('Microsoft.Storage/storageAccounts', parameters('funcStorageName')), 'Microsoft.Authorization/roleAssignments', guid(resourceId('Microsoft.Storage/storageAccounts', parameters('funcStorageName')), parameters('miPrincipalId'), variables('roleStorageBlobDataOwner')))]",
+                        "[extensionResourceId(resourceId('Microsoft.Storage/storageAccounts', parameters('funcStorageName')), 'Microsoft.Authorization/roleAssignments', guid(resourceId('Microsoft.Storage/storageAccounts', parameters('funcStorageName')), parameters('miPrincipalId'), variables('roleStorageQueueDataContributor')))]",
+                        "[extensionResourceId(resourceId('Microsoft.Storage/storageAccounts', parameters('funcStorageName')), 'Microsoft.Authorization/roleAssignments', guid(resourceId('Microsoft.Storage/storageAccounts', parameters('funcStorageName')), parameters('miPrincipalId'), variables('roleStorageTableDataContributor')))]",
+                        "[resourceId('Microsoft.Web/serverfarms', parameters('planName'))]"
+                      ]
+                    }
+                  ],
+                  "outputs": {
+                    "functionAppName": {
+                      "type": "string",
+                      "value": "[parameters('functionAppName')]"
+                    },
+                    "functionAppHostname": {
+                      "type": "string",
+                      "value": "[reference(resourceId('Microsoft.Web/sites', parameters('functionAppName')), '2024-04-01').defaultHostName]"
+                    },
+                    "funcStorageName": {
+                      "type": "string",
+                      "value": "[parameters('funcStorageName')]"
+                    }
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Resources/deployments', 'mod-cu')]",
+                "[resourceId('Microsoft.Resources/deployments', 'mod-cosmos')]",
+                "[resourceId('Microsoft.Resources/deployments', 'mod-foundry')]",
+                "[resourceId('Microsoft.Resources/deployments', 'mod-identity')]",
+                "[resourceId('Microsoft.Resources/deployments', 'mod-monitoring')]",
+                "[resourceId('Microsoft.Resources/deployments', 'mod-storage')]"
+              ]
+            }
+          ],
+          "outputs": {
+            "foundryEndpoint": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'mod-foundry'), '2025-04-01').outputs.endpoint.value]"
+            },
+            "foundryProjectName": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'mod-foundry'), '2025-04-01').outputs.projectName.value]"
+            },
+            "storageAccountName": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'mod-storage'), '2025-04-01').outputs.name.value]"
+            },
+            "documentStorageBlobEndpoint": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'mod-storage'), '2025-04-01').outputs.blobEndpoint.value]"
+            },
+            "keyVaultUri": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'mod-keyvault'), '2025-04-01').outputs.uri.value]"
+            },
+            "managedIdentityClientId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'mod-identity'), '2025-04-01').outputs.clientId.value]"
+            },
+            "appInsightsConnectionString": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'mod-monitoring'), '2025-04-01').outputs.appInsightsConnectionString.value]"
+            },
+            "cosmosEndpoint": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'mod-cosmos'), '2025-04-01').outputs.endpoint.value]"
+            },
+            "cosmosDatabaseName": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'mod-cosmos'), '2025-04-01').outputs.databaseName.value]"
+            },
+            "functionAppName": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'mod-functions'), '2025-04-01').outputs.functionAppName.value]"
+            },
+            "functionAppHostname": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'mod-functions'), '2025-04-01').outputs.functionAppHostname.value]"
+            },
+            "contentUnderstandingEndpoint": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'mod-cu'), '2025-04-01').outputs.endpoint.value]"
+            },
+            "contentUnderstandingAccountName": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'mod-cu'), '2025-04-01').outputs.name.value]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', 'rg-translate')]"
+      ]
+    }
+  ],
+  "outputs": {
+    "resourceGroupName": {
+      "type": "string",
+      "value": "rg-translate"
+    },
+    "foundryEndpoint": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, 'rg-translate'), 'Microsoft.Resources/deployments', 'translate-workload'), '2025-04-01').outputs.foundryEndpoint.value]"
+    },
+    "foundryProjectName": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, 'rg-translate'), 'Microsoft.Resources/deployments', 'translate-workload'), '2025-04-01').outputs.foundryProjectName.value]"
+    },
+    "storageAccountName": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, 'rg-translate'), 'Microsoft.Resources/deployments', 'translate-workload'), '2025-04-01').outputs.storageAccountName.value]"
+    },
+    "documentStorageBlobEndpoint": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, 'rg-translate'), 'Microsoft.Resources/deployments', 'translate-workload'), '2025-04-01').outputs.documentStorageBlobEndpoint.value]"
+    },
+    "keyVaultUri": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, 'rg-translate'), 'Microsoft.Resources/deployments', 'translate-workload'), '2025-04-01').outputs.keyVaultUri.value]"
+    },
+    "managedIdentityClientId": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, 'rg-translate'), 'Microsoft.Resources/deployments', 'translate-workload'), '2025-04-01').outputs.managedIdentityClientId.value]"
+    },
+    "appInsightsConnectionString": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, 'rg-translate'), 'Microsoft.Resources/deployments', 'translate-workload'), '2025-04-01').outputs.appInsightsConnectionString.value]"
+    },
+    "cosmosEndpoint": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, 'rg-translate'), 'Microsoft.Resources/deployments', 'translate-workload'), '2025-04-01').outputs.cosmosEndpoint.value]"
+    },
+    "cosmosDatabaseName": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, 'rg-translate'), 'Microsoft.Resources/deployments', 'translate-workload'), '2025-04-01').outputs.cosmosDatabaseName.value]"
+    },
+    "functionAppName": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, 'rg-translate'), 'Microsoft.Resources/deployments', 'translate-workload'), '2025-04-01').outputs.functionAppName.value]"
+    },
+    "functionAppHostname": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, 'rg-translate'), 'Microsoft.Resources/deployments', 'translate-workload'), '2025-04-01').outputs.functionAppHostname.value]"
+    },
+    "contentUnderstandingEndpoint": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, 'rg-translate'), 'Microsoft.Resources/deployments', 'translate-workload'), '2025-04-01').outputs.contentUnderstandingEndpoint.value]"
+    },
+    "contentUnderstandingAccountName": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, 'rg-translate'), 'Microsoft.Resources/deployments', 'translate-workload'), '2025-04-01').outputs.contentUnderstandingAccountName.value]"
+    }
+  }
+}

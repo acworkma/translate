@@ -1,0 +1,27 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "FUNCTIONS_WORKER_RUNTIME": "python",
+    "AzureWebJobsStorage__accountName": "<func ops storage account name>",
+    "AzureWebJobsStorage__credential": "managedidentity",
+    "AzureWebJobsStorage__clientId": "<managed-identity-client-id>",
+    "AZURE_CLIENT_ID": "<managed-identity-client-id>",
+    "FOUNDRY_ENDPOINT": "https://aif-translate-eus2.cognitiveservices.azure.com/",
+    "TRANSLATOR_ENDPOINT": "https://aif-translate-eus2.cognitiveservices.azure.com/",
+    "TRANSLATOR_API_VERSION": "2024-05-01",
+    "COSMOS_ENDPOINT": "https://cosmos-translate-<suffix>.documents.azure.com:443/",
+    "COSMOS_DATABASE": "translate",
+    "DOCUMENT_STORAGE_ACCOUNT_NAME": "sttranslate<suffix>",
+    "DOCUMENT_STORAGE_BLOB_ENDPOINT": "https://sttranslate<suffix>.blob.core.windows.net/",
+    "DOCUMENT_TRANSLATION_TARGET_CONTAINER": "translated",
+    "DOCUMENT_TRANSLATION_GLOSSARY_CONTAINER": "glossaries",
+    "CONTENT_UNDERSTANDING_ENDPOINT": "https://cog-translate-cu-wus.cognitiveservices.azure.com/",
+    "CONTENT_UNDERSTANDING_ANALYZER_ID": "translate-doc-v1",
+    "MODEL_TRANSLATOR": "gpt-4-1",
+    "MODEL_JUDGE": "grok-4-1-fast-reasoning",
+    "MODEL_UTILITY": "gpt-4o-mini",
+    "SUPPORTED_LANGUAGES": "es,zh-Hans,vi,ar,ru",
+    "JUDGE_PASS_THRESHOLD": "4.0",
+    "MAX_REVISE_ATTEMPTS": "2"
+  }
+}

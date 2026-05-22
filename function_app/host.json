@@ -1,0 +1,34 @@
+{
+  "version": "2.0",
+  "extensionBundle": {
+    "id": "Microsoft.Azure.Functions.ExtensionBundle",
+    "version": "[4.*, 5.0.0)"
+  },
+  "logging": {
+    "applicationInsights": {
+      "samplingSettings": {
+        "isEnabled": true,
+        "excludedTypes": "Request"
+      }
+    },
+    "logLevel": {
+      "default": "Information",
+      "Host.Aggregator": "Trace",
+      "Function": "Information"
+    }
+  },
+  "extensions": {
+    "durableTask": {
+      "hubName": "Translate",
+      "storageProvider": {
+        "type": "AzureStorage"
+      },
+      "maxConcurrentActivityFunctions": 10,
+      "maxConcurrentOrchestratorFunctions": 5
+    },
+    "http": {
+      "routePrefix": "api"
+    }
+  },
+  "functionTimeout": "01:00:00"
+}
