@@ -75,15 +75,25 @@ async def start_job(req: func.HttpRequest, client) -> func.HttpResponse:
 async def get_status(req: func.HttpRequest, client) -> func.HttpResponse:
     """GET /api/jobs/{jobId} — return orchestration status."""
     job_id = req.route_params.get("jobId")
-    status = await client.get_status(job_id, show_input=False, show_output=True)
+    try:
+        status = await client.get_status(job_id)
+    except Exception as exc:
+        logging.exception("get_status failed for %s", job_id)
+        return func.HttpResponse(json.dumps({"error": str(exc)}), status_code=500, mimetype="application/json")
     if status is None:
         return func.HttpResponse("not found", status_code=404)
+    def _safe(v):
+        if v is None:
+            return None
+        if hasattr(v, "isoformat"):
+            return v.isoformat()
+        return v
     body = {
-        "instanceId": status.instance_id,
-        "runtimeStatus": str(status.runtime_status).rsplit(".", 1)[-1],
-        "output": status.output,
-        "customStatus": status.custom_status,
-        "createdTime": status.created_time.isoformat() if status.created_time else None,
-        "lastUpdatedTime": status.last_updated_time.isoformat() if status.last_updated_time else None,
+        "instanceId": getattr(status, "instance_id", None),
+        "runtimeStatus": str(getattr(status, "runtime_status", "")).rsplit(".", 1)[-1],
+        "output": getattr(status, "output", None),
+        "customStatus": getattr(status, "custom_status", None),
+        "createdTime": _safe(getattr(status, "created_time", None)),
+        "lastUpdatedTime": _safe(getattr(status, "last_updated_time", None)),
     }
     return func.HttpResponse(json.dumps(body, default=str), mimetype="application/json")

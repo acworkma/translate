@@ -125,7 +125,7 @@ def orchestrator(context: df.DurableOrchestrationContext):
     score = judge_result["overall_score"]
     decision = judge_result["decision"]
 
-    if decision == "REJECT" or score < PASS_THRESHOLD:
+    if score < PASS_THRESHOLD:
         review = yield context.call_activity("activity_route_to_review", {
             "jobId": job_id,
             "targetLanguage": target_language,
