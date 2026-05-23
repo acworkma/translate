@@ -5,19 +5,20 @@ End-to-end Azure pipeline that translates English DOCX files into other language
 ## Architecture
 
 ```
-┌──────────────┐    ┌───────────────────────────┐    ┌─────────────────────────┐
-│ HTTP POST    │ →  │ Durable Orchestrator      │ →  │ extract (Content Under- │
-│ /api/jobs    │    │ (function app)            │    │ standing) — paragraphs  │
-└──────────────┘    └───────────────────────────┘    └─────────────────────────┘
-                                                              ↓
-                  ┌───────────────────────────────────────────────────────────┐
-                  │ enrich (TA4Health DNT) → glossary_lookup (Cosmos)         │
-                  │ → glossary_build (TSV) → document_translate               │
-                  │   (Azure AI Translator — format preserved, images intact) │
-                  │ → extract (re-read translated docx)                       │
-                  │ → pair_segments → guardrails → judge (Grok)               │
-                  │ → revise loop (gpt-4.1) → patch_docx → final/             │
-                  └───────────────────────────────────────────────────────────┘
+┌──────────────────────┐    ┌───────────────────────────┐    ┌─────────────────────────┐
+│ HTTP POST /api/jobs  │ →  │ Durable Orchestrator      │ →  │ extract (Content Under- │
+│ (Functions HTTP)     │    │ (Durable Functions)       │    │ standing) — paragraphs  │
+└──────────────────────┘    └───────────────────────────┘    └─────────────────────────┘
+                                                                       ↓
+              ┌──────────────────────────────────────────────────────────────────────┐
+              │ enrich (AI Language / TA4H DNT) → glossary_lookup (Cosmos DB)        │
+              │ → glossary_build (Blob — TSV) → document_translate                   │
+              │   (AI Translator — format preserved, images intact)                  │
+              │ → extract (Content Understanding — re-read translated docx)          │
+              │ → pair_segments (in-proc) → guardrails (in-proc) → judge (Foundry —  │
+              │   Grok) → revise loop (Foundry — gpt-4.1) → patch_docx (Blob)        │
+              │ → final/ (Blob)                                                      │
+              └──────────────────────────────────────────────────────────────────────┘
 ```
 
 **Why hybrid?** Azure AI Translator's Document Translation API preserves the original DOCX exactly — images, tables, fonts, footers — but cannot enforce a medical glossary or self-evaluate. We use it as the format-preserving spine, then run an LLM judge over the paired (source ↔ target) segments and surgically patch only the segments the judge flagged. Untouched paragraphs keep all their original run-level formatting.

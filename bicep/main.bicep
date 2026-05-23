@@ -14,6 +14,20 @@ param adminPrincipalId string
 @description('Optional tags merged onto the standard set.')
 param extraTags object = {}
 
+@description('Deploy the demo container app (requires the image to be in ACR already).')
+param deployDemoApp bool = false
+
+@description('Tag of the demo container image to deploy.')
+param demoImageTag string = 'latest'
+
+@description('Demo UI password.')
+@secure()
+param demoPassword string = 'fr24'
+
+@description('Demo UI session signing secret.')
+@secure()
+param demoSessionSecret string = newGuid()
+
 var baseTags = {
   workload: 'translate'
   dataClassification: 'PHI'
@@ -34,6 +48,10 @@ module workload 'workload.bicep' = {
     location: location
     tags: tags
     adminPrincipalId: adminPrincipalId
+    deployDemoApp: deployDemoApp
+    demoImageTag: demoImageTag
+    demoPassword: demoPassword
+    demoSessionSecret: demoSessionSecret
   }
 }
 
@@ -51,3 +69,7 @@ output functionAppName string = workload.outputs.functionAppName
 output functionAppHostname string = workload.outputs.functionAppHostname
 output contentUnderstandingEndpoint string = workload.outputs.contentUnderstandingEndpoint
 output contentUnderstandingAccountName string = workload.outputs.contentUnderstandingAccountName
+output keyVaultName string = workload.outputs.keyVaultName
+output demoAcrLoginServer string = workload.outputs.demoAcrLoginServer
+output demoAcrName string = workload.outputs.demoAcrName
+output demoAppFqdn string = workload.outputs.demoAppFqdn

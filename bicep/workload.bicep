@@ -8,6 +8,23 @@ param adminPrincipalId string
 @description('Region for the Content Understanding account (CU preview not yet in eastus2). Default westus.')
 param cuLocation string = 'westus'
 
+@description('Deploy the demo container app + ACA environment (set false to only create the ACR).')
+param deployDemoApp bool = false
+
+@description('Container image tag for the demo app (must be pushed before deployDemoApp=true).')
+param demoImageTag string = 'latest'
+
+@description('Demo UI password.')
+@secure()
+param demoPassword string = 'fr24'
+
+@description('Demo UI session signing secret.')
+@secure()
+param demoSessionSecret string = newGuid()
+
+@description('Name of the Key Vault secret holding the function key.')
+param functionKeySecretName string = 'function-key'
+
 // Shared 6-char uniqueness suffix for globally-unique names.
 var suffix = take(uniqueString(resourceGroup().id), 6)
 
@@ -24,6 +41,10 @@ var names = {
   funcPlan:        'asp-translate-eus2'
   funcApp:         'func-translate-${suffix}'
   contentUnderstanding: 'cog-translate-cu-wus'
+  demoAcr:        take(toLower(replace('acrtranslate${suffix}', '-', '')), 50)
+  demoEnv:        'cae-translate-eus2'
+  demoApp:        'ca-translate-demo'
+  demoUami:       'id-translate-demo-eus2'
 }
 
 module identity 'modules/identity.bicep' = {
@@ -125,11 +146,44 @@ module functionApp 'modules/functions.bicep' = {
   }
 }
 
+module demoAcr 'modules/demoAcr.bicep' = {
+  name: 'mod-demo-acr'
+  params: {
+    name: names.demoAcr
+    location: location
+    tags: tags
+  }
+}
+
+module demoApp 'modules/demoApp.bicep' = if (deployDemoApp) {
+  name: 'mod-demo-app'
+  params: {
+    acrName: demoAcr.outputs.name
+    envName: names.demoEnv
+    appName: names.demoApp
+    uamiName: names.demoUami
+    location: location
+    tags: tags
+    logAnalyticsWorkspaceId: monitoring.outputs.logAnalyticsId
+    logAnalyticsCustomerId: monitoring.outputs.logAnalyticsCustomerId
+    functionHost: functionApp.outputs.functionAppHostname
+    storageAccountName: storage.outputs.name
+    storageAccountId: storage.outputs.id
+    keyVaultUri: keyVault.outputs.uri
+    keyVaultId: keyVault.outputs.id
+    functionKeySecretName: functionKeySecretName
+    demoPassword: demoPassword
+    sessionSecret: demoSessionSecret
+    imageTag: demoImageTag
+  }
+}
+
 output foundryEndpoint string = foundry.outputs.endpoint
 output foundryProjectName string = foundry.outputs.projectName
 output storageAccountName string = storage.outputs.name
 output documentStorageBlobEndpoint string = storage.outputs.blobEndpoint
 output keyVaultUri string = keyVault.outputs.uri
+output keyVaultName string = keyVault.outputs.name
 output managedIdentityClientId string = identity.outputs.clientId
 output appInsightsConnectionString string = monitoring.outputs.appInsightsConnectionString
 output cosmosEndpoint string = cosmos.outputs.endpoint
@@ -138,3 +192,6 @@ output functionAppName string = functionApp.outputs.functionAppName
 output functionAppHostname string = functionApp.outputs.functionAppHostname
 output contentUnderstandingEndpoint string = contentUnderstanding.outputs.endpoint
 output contentUnderstandingAccountName string = contentUnderstanding.outputs.name
+output demoAcrLoginServer string = demoAcr.outputs.loginServer
+output demoAcrName string = demoAcr.outputs.name
+output demoAppFqdn string = deployDemoApp ? demoApp!.outputs.appFqdn : ''
