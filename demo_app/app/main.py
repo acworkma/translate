@@ -42,13 +42,16 @@ FUNCTION_KEY_SECRET_URI = os.environ.get("FUNCTION_KEY_SECRET_URI", "")
 FUNCTION_KEY_INLINE = os.environ.get("FUNCTION_KEY", "")  # optional fallback
 STORAGE_ACCOUNT = os.environ.get("STORAGE_ACCOUNT_NAME", "")
 SUPPORTED_LANGUAGES = [
-    s.strip() for s in os.environ.get("SUPPORTED_LANGUAGES", "es,zh-Hans,vi,ar,ru").split(",") if s.strip()
+    s.strip() for s in os.environ.get("SUPPORTED_LANGUAGES", "es,sw,so,my,ar").split(",") if s.strip()
 ]
 LANG_LABELS = {
     "es": "Spanish",
+    "sw": "Swahili",
+    "so": "Somali",
+    "my": "Burmese",
+    "ar": "Arabic",
     "zh-Hans": "Simplified Chinese",
     "vi": "Vietnamese",
-    "ar": "Arabic",
     "ru": "Russian",
     "fr": "French",
     "de": "German",

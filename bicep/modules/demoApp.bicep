@@ -43,7 +43,7 @@ param keyVaultId string
 param storageAccountId string
 
 @description('Supported language codes (csv).')
-param supportedLanguages string = 'es,zh-Hans,vi,ar,ru'
+param supportedLanguages string = 'es,sw,so,my,ar'
 
 @description('Demo password for the UI gate.')
 @secure()
