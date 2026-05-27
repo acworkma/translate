@@ -32,6 +32,8 @@ var baseTags = {
   workload: 'translate'
   dataClassification: 'PHI'
   managedBy: 'bicep'
+  // Exempts resources from the subscription's nightly security-control policies (demo subs only).
+  SecurityControl: 'Ignore'
 }
 var tags = union(baseTags, extraTags)
 
