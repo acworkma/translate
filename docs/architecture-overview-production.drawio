@@ -1,0 +1,82 @@
+<mxfile host="app.diagrams.net" agent="copilot" version="24.7.0">
+  <diagram id="overview-prod" name="Overview - Production">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="title-1" value="Production path — Caller integrates against the Function App HTTP API" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="40" y="20" width="1320" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="caller" value="Client&#10;/ API caller" style="shape=mxgraph.azure2019.user;html=1;fontSize=12;align=center;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="80" y="380" width="80" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="funcapp" value="Function App&#10;(Durable orchestrator)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0078D4;strokeColor=#005A9E;fontColor=#FFFFFF;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="440" y="400" width="200" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="storage" value="Document Storage&#10;&#10;inbound · translated · final&#10;reviewed · audit" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#50E6FF;strokeColor=#0078D4;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="820" y="80" width="200" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cosmos" value="Cosmos DB&#10;&#10;jobs · glossary&#10;audit · reviews" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#50E6FF;strokeColor=#0078D4;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="820" y="240" width="200" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="foundry" value="Azure AI Foundry&#10;&#10;translator (gpt-4.1)&#10;judge (grok-4)&#10;utility (gpt-4o-mini)&#10;Text Analytics for Health" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0078D4;strokeColor=#005A9E;fontColor=#FFFFFF;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="820" y="400" width="200" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cu" value="Content Understanding&#10;&#10;(document extraction)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0078D4;strokeColor=#005A9E;fontColor=#FFFFFF;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="820" y="560" width="200" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="doctx" value="Azure AI Translator&#10;Document Translation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0078D4;strokeColor=#005A9E;fontColor=#FFFFFF;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="820" y="680" width="200" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="kv" value="Key Vault&#10;(function key)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F2F2F2;strokeColor=#666666;dashed=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="80" y="200" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="obs" value="App Insights +&#10;Log Analytics" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F2F2F2;strokeColor=#666666;dashed=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="440" y="240" width="200" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e1" value="1. upload .docx" style="endArrow=classic;html=1;fontSize=11;" edge="1" parent="1" source="caller" target="storage">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" value="2. POST /api/jobs&#10;3. GET /api/jobs/{id}" style="endArrow=classic;html=1;fontSize=11;" edge="1" parent="1" source="caller" target="funcapp">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" style="endArrow=classic;startArrow=classic;html=1;" edge="1" parent="1" source="funcapp" target="storage">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" style="endArrow=classic;startArrow=classic;html=1;" edge="1" parent="1" source="funcapp" target="cosmos">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" style="endArrow=classic;html=1;" edge="1" parent="1" source="funcapp" target="foundry">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" style="endArrow=classic;html=1;" edge="1" parent="1" source="funcapp" target="cu">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" style="endArrow=classic;html=1;" edge="1" parent="1" source="funcapp" target="doctx">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" style="endArrow=classic;startArrow=classic;html=1;" edge="1" parent="1" source="doctx" target="storage">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" value="function key" style="endArrow=classic;html=1;dashed=1;fontSize=10;" edge="1" parent="1" source="kv" target="caller">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" value="telemetry" style="endArrow=classic;html=1;dashed=1;fontSize=10;" edge="1" parent="1" source="funcapp" target="obs">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
