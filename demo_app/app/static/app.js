@@ -71,6 +71,7 @@
         throw new Error(`HTTP ${r.status}: ${t}`);
       }
       const data = await r.json();
+      startBtn.textContent = "Translating…";
       jobIdLabel.textContent = data.jobId;
       workflowCard.classList.remove("hidden");
       resetSteps();
