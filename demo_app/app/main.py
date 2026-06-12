@@ -70,7 +70,7 @@ STEPS: List[Dict[str, str]] = [
     {"key": "extract_target", "label": "Extract target (Content Understanding)", "activity": "activity_extract"},  # 2nd call
     {"key": "pair", "label": "Pair segments (in-proc)", "activity": "activity_pair_segments"},
     {"key": "guardrails", "label": "Guardrails (in-proc)", "activity": "activity_guardrails"},
-    {"key": "judge", "label": "Judge (Foundry — Grok)", "activity": "activity_judge"},
+    {"key": "judge", "label": "Judge (Foundry)", "activity": "activity_judge"},
     {"key": "finalize", "label": "Finalize / route (Blob)", "activity": "activity_patch_docx"},  # or route_to_review
 ]
 
