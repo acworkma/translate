@@ -215,7 +215,7 @@
           <mxGeometry x="1500" y="330" width="240" height="40" as="geometry" />
         </mxCell>
 
-        <mxCell id="cu2" value="Content Understanding&#10;analyzer translate-doc-v1&#10;(westus)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0078D4;strokeColor=#005A9E;fontColor=#FFFFFF;fontSize=11;" vertex="1" parent="1">
+        <mxCell id="cu2" value="Content Understanding&#10;analyzer translate_doc_v1&#10;(westus)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0078D4;strokeColor=#005A9E;fontColor=#FFFFFF;fontSize=11;" vertex="1" parent="1">
           <mxGeometry x="1500" y="440" width="240" height="70" as="geometry" />
         </mxCell>
         <mxCell id="doctx2" value="Azure AI Translator&#10;Document Translation API&#10;(Foundry MI → Blob)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0078D4;strokeColor=#005A9E;fontColor=#FFFFFF;fontSize=11;" vertex="1" parent="1">

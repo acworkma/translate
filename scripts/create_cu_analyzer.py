@@ -13,13 +13,13 @@ import time
 import httpx
 from azure.identity import DefaultAzureCredential
 
-API_VERSION = "2024-12-01-preview"
+API_VERSION = "2025-11-01"
 SCOPE = "https://cognitiveservices.azure.com/.default"
 
 
 def main() -> int:
     endpoint = os.environ.get("CONTENT_UNDERSTANDING_ENDPOINT")
-    analyzer_id = os.environ.get("CONTENT_UNDERSTANDING_ANALYZER_ID", "translate-doc-v1")
+    analyzer_id = os.environ.get("CONTENT_UNDERSTANDING_ANALYZER_ID", "translate_doc_v1")
     if not endpoint:
         print("CONTENT_UNDERSTANDING_ENDPOINT env var required", file=sys.stderr)
         return 2
@@ -30,14 +30,12 @@ def main() -> int:
 
     body = {
         "description": "Document layout analyzer for medical translation pipeline",
-        "baseAnalyzerId": "prebuilt-documentAnalyzer",
-        "scenario": "document",
+        "baseAnalyzerId": "prebuilt-document",
         "config": {
-            "returnDetails": True,
             "enableOcr": True,
-            "enableLayout": True,
-            "enableFormula": False,
-            "enableBarcode": False,
+        },
+        "models": {
+            "completion": "gpt-4.1",
         },
     }
 

@@ -13,7 +13,7 @@
     "MODEL_TRANSLATOR": "gpt-4-1",
     "MODEL_JUDGE": "grok-3",
     "MODEL_UTILITY": "gpt-4o-mini",
-    "CONTENT_UNDERSTANDING_ANALYZER_ID": "discharge-doc-v1",
+    "CONTENT_UNDERSTANDING_ANALYZER_ID": "discharge_doc_v1",
     "JUDGE_PASS_THRESHOLD": "4.0",
     "MAX_REVISE_ATTEMPTS": "2"
   }

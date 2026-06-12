@@ -16,7 +16,7 @@
     "DOCUMENT_TRANSLATION_TARGET_CONTAINER": "translated",
     "DOCUMENT_TRANSLATION_GLOSSARY_CONTAINER": "glossaries",
     "CONTENT_UNDERSTANDING_ENDPOINT": "https://cog-translate-cu-wus.cognitiveservices.azure.com/",
-    "CONTENT_UNDERSTANDING_ANALYZER_ID": "translate-doc-v1",
+    "CONTENT_UNDERSTANDING_ANALYZER_ID": "translate_doc_v1",
     "MODEL_TRANSLATOR": "gpt-4-1",
     "MODEL_JUDGE": "grok-4-1-fast-reasoning",
     "MODEL_UTILITY": "gpt-4o-mini",

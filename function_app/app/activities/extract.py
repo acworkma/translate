@@ -5,9 +5,9 @@ Used twice per job: once on the English source (mode=source) and again on the
 Document Translation output (mode=target). Both runs produce a flat list of
 `Segment` records in the same reading order so `pair_segments` can align them.
 
-Content Understanding is preview and not yet in eastus2 — the workload runs in
-eastus2 but a dedicated Content Understanding Cognitive Services account is
-deployed in a CU-supported region (westus). Its endpoint is supplied via the
+Content Understanding is not yet in eastus2 — the workload runs in eastus2 but
+a dedicated Content Understanding Cognitive Services account is deployed in a
+CU-supported region (westus). Its endpoint is supplied via the
 `CONTENT_UNDERSTANDING_ENDPOINT` app setting.
 """
 from __future__ import annotations
@@ -25,14 +25,14 @@ from app.models import ExtractResult, Segment
 
 extract_bp = df.Blueprint()
 
-CU_API_VERSION = "2024-12-01-preview"
+CU_API_VERSION = "2025-11-01"
 SKIP_ROLES = {"pageHeader", "pageFooter", "pageNumber"}
 
 
 def _call_content_understanding(doc_bytes: bytes) -> dict:
     endpoint = os.environ["CONTENT_UNDERSTANDING_ENDPOINT"].rstrip("/")
     analyzer_id = os.environ["CONTENT_UNDERSTANDING_ANALYZER_ID"]
-    url = f"{endpoint}/contentunderstanding/analyzers/{analyzer_id}:analyze?api-version={CU_API_VERSION}"
+    url = f"{endpoint}/contentunderstanding/analyzers/{analyzer_id}:analyzeBinary?api-version={CU_API_VERSION}"
 
     with httpx.Client(timeout=120.0) as client:
         resp = client.post(

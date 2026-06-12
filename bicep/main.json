@@ -1538,7 +1538,7 @@
                             },
                             {
                               "name": "CONTENT_UNDERSTANDING_ANALYZER_ID",
-                              "value": "translate-doc-v1"
+                              "value": "translate_doc_v1"
                             },
                             {
                               "name": "SUPPORTED_LANGUAGES",

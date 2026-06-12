@@ -130,7 +130,7 @@ flowchart LR
         TA4H["Text Analytics<br/>for Health"]
     end
 
-    CU["Content Understanding<br/>analyzer translate-doc-v1<br/>(westus)"]
+    CU["Content Understanding<br/>analyzer translate_doc_v1<br/>(westus)"]
     DocTx["Azure AI Translator<br/>Document Translation API<br/>(Foundry MI → Blob)"]
 
     Obs["App Insights +<br/>Log Analytics"]

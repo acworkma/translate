@@ -48,9 +48,12 @@ def _call_judge(segments: list[Segment], target_language: str, attempt: int) -> 
         ],
         response_format={"type": "json_object"},
         temperature=0.0,
-        max_tokens=4096,
+        max_tokens=16384,
     )
-    return json.loads(resp.choices[0].message.content)
+    content = resp.choices[0].message.content
+    if resp.choices[0].finish_reason == "length":
+        raise ValueError("Judge response truncated — output exceeded max_tokens")
+    return json.loads(content)
 
 
 @judge_bp.activity_trigger(input_name="payload")

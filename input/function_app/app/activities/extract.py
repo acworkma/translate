@@ -20,7 +20,7 @@ from app.models import ExtractResult, Segment
 
 extract_bp = df.Blueprint()
 
-CU_API_VERSION = "2024-12-01-preview"
+CU_API_VERSION = "2025-11-01"
 SCOPE = "https://cognitiveservices.azure.com/.default"
 
 
@@ -34,7 +34,7 @@ def _cu_token() -> str:
 def _call_content_understanding(doc_bytes: bytes) -> dict:
     endpoint = os.environ["FOUNDRY_ENDPOINT"].rstrip("/")
     analyzer_id = os.environ["CONTENT_UNDERSTANDING_ANALYZER_ID"]
-    url = f"{endpoint}/contentunderstanding/analyzers/{analyzer_id}:analyze?api-version={CU_API_VERSION}"
+    url = f"{endpoint}/contentunderstanding/analyzers/{analyzer_id}:analyzeBinary?api-version={CU_API_VERSION}"
     headers = {
         "Authorization": f"Bearer {_cu_token()}",
         "Content-Type": "application/octet-stream",

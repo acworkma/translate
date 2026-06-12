@@ -161,7 +161,7 @@ resource func 'Microsoft.Web/sites@2024-04-01' = {
 
         // Pipeline configuration
         { name: 'CONTENT_UNDERSTANDING_ENDPOINT',    value: contentUnderstandingEndpoint }
-        { name: 'CONTENT_UNDERSTANDING_ANALYZER_ID', value: 'translate-doc-v1' }
+        { name: 'CONTENT_UNDERSTANDING_ANALYZER_ID', value: 'translate_doc_v1' }
         { name: 'SUPPORTED_LANGUAGES',               value: 'es,sw,so,my,ar' }
         { name: 'JUDGE_PASS_THRESHOLD',              value: '4.0' }
         { name: 'MAX_REVISE_ATTEMPTS',               value: '2' }
